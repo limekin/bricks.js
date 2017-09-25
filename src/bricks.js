@@ -125,9 +125,15 @@ const bricks = (options = {}) => {
 
       element.style.position = 'absolute'
 
-      nodeTop = `${columnHeights[columnTarget]}px`
-      nodeLeft = `${(columnTarget * nodesWidths[index]) + (columnTarget * sizeDetail.gutter)}px`
-
+      // Support full width elements. So the height of the element should be more
+      // than the height of the highest column if the element should be spanned.
+      if (element.classList.contains('spanned')) {
+        nodeTop = `${Math.max.apply(Math, columnHeights)}px`
+        nodeLeft = '0px'
+      } else {
+        nodeTop = `${columnHeights[columnTarget]}px`
+        nodeLeft = `${(columnTarget * nodesWidths[index]) + (columnTarget * sizeDetail.gutter)}px`
+      }
       // support positioned elements (default) or transformed elements
       if (position) {
         element.style.top = nodeTop
@@ -143,7 +149,13 @@ const bricks = (options = {}) => {
       nodeHeight = nodesHeights[index]
 
       if (nodeWidth && nodeHeight) {
-        columnHeights[columnTarget] += nodeHeight + sizeDetail.gutter
+        // Support for spanned elements.
+        if (element.classList.contains('spanned')) {
+          let maxHeight = Math.max.apply(Math, columnHeights)
+          for (i = 0; i < columnHeights.length; ++i)
+            columnHeights[i] = columnHeights[i] + nodeHeight + sizeDetail.gutter + (maxHeight - columnHeights[i])
+        } else
+          columnHeights[columnTarget] += nodeHeight + sizeDetail.gutter
       }
     })
   }
